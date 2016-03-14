@@ -26,6 +26,9 @@
 #include "opendavinci/odcore/data/Container.h"
 #include "opendavinci/odcore/data/TimeStamp.h"
 
+#include "opendlv/data/sensor/nmea/GPRMC.h"
+#include "opendlv/data/environment/WGS84Coordinate.h"
+
 #include "opendlvdata/GeneratedHeaders_OpenDLVData.h"
 
 #include "sensor/gps/gps.hpp"
@@ -70,6 +73,34 @@ void Gps::setUp()
 */
   if (type.compare("trimble") == 0) {
 //      m_device = std::unique_ptr<Device>(new TrimbleDevice());
+
+  // Example on how to decode and work with GPRMC data streams.
+  {
+    using namespace odcore::data;
+    using namespace opendlv::data::environment;
+    using namespace opendlv::data::sensor::nmea;
+
+    // Value of test coordinate.
+    double latitude = 52.247041;
+    double longitude = 10.575830;
+
+    WGS84Coordinate testCoordinate(latitude, WGS84Coordinate::NORTH, longitude, WGS84Coordinate::EAST);
+
+    // Imaginary time stamp when the GPRMC string was received in our software.
+    TimeStamp ts(1240926174, 0);
+
+    // Example $GPRMC string received from the GPS unit.
+    stringstream example;
+    example << "$GPRMC,134254,A,5214.8225,N,01034.5498,E,0.0,0.0,280409,0.0,E,S*c" << endl;
+
+    // GPRMC is a class that can extract data from a GPRMC string as provided by a GPS receiver.
+    GPRMC gprmc;
+    gprmc.setMessage(example.str());
+
+    std::cout << "testCoordinate: lat = " << testCoordinate.getLatitude() << ", lon = " << testCoordinate.getLatitude() << std::endl;
+    std::cout << "decoded via GPRMC: lat = " << gprmc.getCoordinate().getLatitude() << ", lon = " << gprmc.getCoordinate().getLatitude() << std::endl;
+  }
+    
   }
 
   if (m_device.get() == nullptr) {
