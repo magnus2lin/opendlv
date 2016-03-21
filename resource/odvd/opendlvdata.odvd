@@ -102,6 +102,7 @@ message opendlv.proxy.V2vOutbound [id = X] {
 message opendlv.proxy.reverefh16.Pedals [id = 191] {
     double accelerationPedalPosition [id = 1];
     double brakePedalPosition [id = 2];
+    double torsionBarTorque [id = 3];
 }
 
 message opendlv.proxy.reverefh16.AccelerationRequest [id = 192] {
@@ -148,7 +149,6 @@ message opendlv.proxy.reverefh16.Wheels [id = 198] {
 message opendlv.proxy.reverefh16.Steering [id = 199] {
     double roadwheelangle [id = 1];
     double steeringwheelangle [id = 2];
-    double torsionBarTorque [id = 3];
 }
 
 /*
