@@ -153,7 +153,8 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Keyboard::body()
 {
 //  const float INCREMENT = M_PI/180.0;
 //  const float INCREMENT = 0.1;
-  float v = -4;
+  float v = -4; // value for braking
+
   const float REQUIRED_FREQ = 100.0;
   if (fabs(getFrequency() - REQUIRED_FREQ) > 1e-5f) {
     cerr << getName() << " was not started with --freq=" << REQUIRED_FREQ << "! Aborting..." << endl;
@@ -161,57 +162,57 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Keyboard::body()
   else {
       while (getModuleStateAndWaitForRemainingTimeInTimeslice() ==
       odcore::data::dmcp::ModuleStateMessage::RUNNING) {
-        {
-          struct timeval tv;
-          fd_set fds;
-          tv.tv_sec = 0;
-          tv.tv_usec = 0;
-          FD_ZERO(&fds);
-          FD_SET(STDIN_FILENO, &fds); // STDOUT_FILENO is 0
-          select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+//        {
+//          struct timeval tv;
+//          fd_set fds;
+//          tv.tv_sec = 0;
+//          tv.tv_usec = 0;
+//          FD_ZERO(&fds);
+//          FD_SET(STDIN_FILENO, &fds); // STDOUT_FILENO is 0
+//          select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
 
-          if (FD_ISSET(STDIN_FILENO, &fds) != 0) {
-            char c = fgetc(stdin);
+//          if (FD_ISSET(STDIN_FILENO, &fds) != 0) {
+//            char c = fgetc(stdin);
 
-            // Check pressed key.
-            if (c == m_keyIncreaseAcceleration) {
-              cout << "Increase accelerate" << endl;
-            }
-            else if (c == m_keyDecreaseAcceleration) {
-              cout << "Decrease accelerate" << endl;
-            }
-            else if (c == m_keyIncreaseBrake) {
-              cout << "Increase brake" << endl;
-            }
-            else if (c == m_keyDecreaseBrake) {
-              cout << "Decrease brake" << endl;
-            }
-            else if (c == m_keyLeft) {
-              cout << "Left" << endl;
+//            // Check pressed key.
+//            if (c == m_keyIncreaseAcceleration) {
+//              cout << "Increase accelerate" << endl;
 //              v += INCREMENT;
-            }
-            else if (c == m_keyRight) {
-              cout << "Right" << endl;
+//            }
+//            else if (c == m_keyDecreaseAcceleration) {
+//              cout << "Decrease accelerate" << endl;
 //              v -= INCREMENT;
-            }
-          }
-        }
+//            }
+//            else if (c == m_keyIncreaseBrake) {
+//              cout << "Increase brake" << endl;
+//            }
+//            else if (c == m_keyDecreaseBrake) {
+//              cout << "Decrease brake" << endl;
+//            }
+//            else if (c == m_keyLeft) {
+//              cout << "Left" << endl;
+//            }
+//            else if (c == m_keyRight) {
+//              cout << "Right" << endl;
+//            }
+//          }
+//        }
 
-        {
-            opendlv::proxy::reverefh16::SteeringRequest steerRequest;
-            steerRequest.setEnableRequest(true);
-            steerRequest.setSteeringRoadWheelAngle(v);
-            steerRequest.setSteeringDeltaTorque(0);
+//        {
+//            opendlv::proxy::reverefh16::SteeringRequest steerRequest;
+//            steerRequest.setEnableRequest(true);
+//            steerRequest.setSteeringRoadWheelAngle(v);
+//            steerRequest.setSteeringDeltaTorque(v);
 
-            // Create the message mapping.
-            canmapping::opendlv::proxy::reverefh16::SteeringRequest steeringRequestMapping;
-            // The high-level message needs to be put into a Container.
-            odcore::data::Container c(steerRequest);
-            automotive::GenericCANMessage gcm = steeringRequestMapping.encode(c);
-            m_device->write(gcm);
-//cout << "SR = " << steerRequest.toString() << ", GCM = " << gcm.toString() << endl;
-//cout << endl;
-        }
+//            // Create the message mapping.
+//            canmapping::opendlv::proxy::reverefh16::SteeringRequest steeringRequestMapping;
+//            // The high-level message needs to be put into a Container.
+//            odcore::data::Container c(steerRequest);
+//            automotive::GenericCANMessage gcm = steeringRequestMapping.encode(c);
+////            m_device->write(gcm);
+////cout << "SR = " << steerRequest.toString() << ", GCM = " << gcm.toString() << endl;
+////cout << endl;
+//        }
 
         {
             opendlv::proxy::reverefh16::BrakeRequest brakeRequest;
@@ -228,19 +229,20 @@ cout << "BR = " << brakeRequest.toString() << ", GCM = " << gcm.toString() << en
 cout << endl;
         }
 
-        {
-            opendlv::proxy::reverefh16::AccelerationRequest accelerationRequest;
-            accelerationRequest.setEnableRequest(true);
-            accelerationRequest.setAcceleration(v);
+//        {
+//            opendlv::proxy::reverefh16::AccelerationRequest accelerationRequest;
+//            accelerationRequest.setEnableRequest(true);
+//            accelerationRequest.setAcceleration(v);
 
-            // Create the message mapping.
-            canmapping::opendlv::proxy::reverefh16::AccelerationRequest accelerationRequestMapping;
-            // The high-level message needs to be put into a Container.
-            odcore::data::Container c(accelerationRequest);
-            automotive::GenericCANMessage gcm = accelerationRequestMapping.encode(c);
-//            m_device->write(gcm);
-//cout << "AR = " << accelerationRequest.toString() << ", GCM = " << gcm.toString() << endl;
-        }
+//            // Create the message mapping.
+//            canmapping::opendlv::proxy::reverefh16::AccelerationRequest accelerationRequestMapping;
+//            // The high-level message needs to be put into a Container.
+//            odcore::data::Container c(accelerationRequest);
+//            automotive::GenericCANMessage gcm = accelerationRequestMapping.encode(c);
+////            m_device->write(gcm);
+////cout << "AR = " << accelerationRequest.toString() << ", GCM = " << gcm.toString() << endl;
+////cout << endl;
+//        }
       }
   }
   return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
