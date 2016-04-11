@@ -198,38 +198,37 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Keyboard::body()
 //          }
 //        }
 
-        {
-            opendlv::proxy::reverefh16::SteeringRequest steerRequest;
-            steerRequest.setEnableRequest(true);
-            steerRequest.setSteeringRoadWheelAngle(.1);
-            steerRequest.setSteeringDeltaTorque(-32);
-
-            // Create the message mapping.
-            canmapping::opendlv::proxy::reverefh16::SteeringRequest steeringRequestMapping;
-            // The high-level message needs to be put into a Container.
-            odcore::data::Container c(steerRequest);
-            automotive::GenericCANMessage gcm = steeringRequestMapping.encode(c);
-            
-            m_device->write(gcm);
-cout << "SR = " << steerRequest.toString() << ", GCM = " << gcm.toString() << endl;
-cout << endl;
-        }
-
 //        {
-//            opendlv::proxy::reverefh16::BrakeRequest brakeRequest;
-//            brakeRequest.setEnableRequest(true);
-//            brakeRequest.setBrake(-4);
+//            opendlv::proxy::reverefh16::SteeringRequest steerRequest;
+//            steerRequest.setEnableRequest(true);
+//            steerRequest.setSteeringRoadWheelAngle(.1);
+//            steerRequest.setSteeringDeltaTorque(33.535);
 
 //            // Create the message mapping.
-//            canmapping::opendlv::proxy::reverefh16::BrakeRequest brakeRequestMapping;
+//            canmapping::opendlv::proxy::reverefh16::SteeringRequest steeringRequestMapping;
 //            // The high-level message needs to be put into a Container.
-//            odcore::data::Container c(brakeRequest);
-//            automotive::GenericCANMessage gcm = brakeRequestMapping.encode(c);
-//            //gcm.setData(8346801);//65211
-//cout << "BR = " << brakeRequest.toString() << ", GCM = " << gcm.toString() << endl;
+//            odcore::data::Container c(steerRequest);
+//            automotive::GenericCANMessage gcm = steeringRequestMapping.encode(c);
+//            
 //            m_device->write(gcm);
+//cout << "SR = " << steerRequest.toString() << ", GCM = " << gcm.toString() << endl;
 //cout << endl;
 //        }
+
+        {
+            opendlv::proxy::reverefh16::BrakeRequest brakeRequest;
+            brakeRequest.setEnableRequest(true);
+            brakeRequest.setBrake(0.480480469);
+
+            // Create the message mapping.
+            canmapping::opendlv::proxy::reverefh16::BrakeRequest brakeRequestMapping;
+            // The high-level message needs to be put into a Container.
+            odcore::data::Container c(brakeRequest);
+            automotive::GenericCANMessage gcm = brakeRequestMapping.encode(c);
+cout << "BR = " << brakeRequest.toString() << ", GCM = " << gcm.toString() << endl;
+            m_device->write(gcm);
+cout << endl;
+        }
 
 //        {
 //            opendlv::proxy::reverefh16::AccelerationRequest accelerationRequest;
