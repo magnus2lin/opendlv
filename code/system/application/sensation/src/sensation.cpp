@@ -161,7 +161,15 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         odcore::data::Container gpsData = getKeyValueDataStore().get(opendlv::proxy::GpsReading::ID());
         opendlv::proxy::GpsReading gpsCoordinate = gpsData.getData<opendlv::proxy::GpsReading>();
 
-       cout << " I am receiving data from gps " << gpsCoordinate.getLatitude() << " " << gpsCoordinate.getLongitude() << " " << endl;
+       cout << " I am receiving data from gps : "
+            << "     latitude = " << gpsCoordinate.getLatitude() 
+            << "     longitude= " << gpsCoordinate.getLongitude() 
+            << "     heading =  " << pgsCoordinate.getNorthHeading() << endl;
+       
+       cout << " I am receiving data from can : "
+            << "                velocity  = " << propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed()
+            << "     steering wheel angle = " << roadwheelangle.getRoadwheelangle() << endl;
+       
 
         if (gpsData.getReceivedTimeStamp().getSeconds() > 0)//if we are actually getting data !
         {
