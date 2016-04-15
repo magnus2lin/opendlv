@@ -164,7 +164,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
        cout << " I am receiving data from gps : "
             << "     latitude = " << gpsCoordinate.getLatitude() 
             << "     longitude= " << gpsCoordinate.getLongitude() 
-            << "     heading =  " << pgsCoordinate.getNorthHeading() << endl;
+            << "     heading =  " << gpsCoordinate.getNorthHeading() << endl;
        
        cout << " I am receiving data from can : "
             << "                velocity  = " << propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed()
