@@ -108,9 +108,9 @@ public:
     //! Steering angle
     static constexpr size_t PHI = 1;
     //! Velocity along the y axis in the vehicle reference frame
-    static constexpr size_t V_Y = 1;
+    static constexpr size_t V_Y = 2;
     //! angular velocity of the vehicle in its own reference frame
-    static constexpr size_t YAW_RATE = 1;
+    static constexpr size_t YAW_RATE = 3;
 
     T v()        const { return (*this)[ V ]; }
     T phi()      const { return (*this)[ PHI ]; }
