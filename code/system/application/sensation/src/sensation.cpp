@@ -161,6 +161,8 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         odcore::data::Container gpsData = getKeyValueDataStore().get(opendlv::proxy::GpsReading::ID());
         opendlv::proxy::GpsReading gpsCoordinate = gpsData.getData<opendlv::proxy::GpsReading>();
 
+       cout << " I am receiving data from gps " << gpsCoordinate.getLatitude() << " " << gpsCoordinate.getLongitude() << " " << endl;
+
         if (gpsData.getReceivedTimeStamp().getSeconds() > 0)//if we are actually getting data !
         {
             if ( !GPSreferenceSET )// the GPS reference is not set, set the GPSreference to the current position
