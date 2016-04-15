@@ -282,7 +282,7 @@ public:
 
         // calculate the THETA - components
         x_p.theta() = x.theta() + x.theta_dot() * delta_t;
-        x_p.theta_dot() = x.theta_dot() + angular_acceleration * delta_t;
+        x_p.theta_dot() = (u.v() /( m_vehicleParams.a + m_vehicleParams.b ) ) * std::tan(u.phi()) + angular_acceleration * delta_t;
 
 
         // Return transitioned state vector

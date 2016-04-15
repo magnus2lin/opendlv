@@ -146,50 +146,59 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
     double time_stamp = 0;
 
     while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
-        odcore::data::Container c1 = getKeyValueDataStore().get(opendlv::system::actuator::Commands::ID());
-        opendlv::system::actuator::Commands commands = c1.getData<opendlv::system::actuator::Commands>();
+        //odcore::data::Container c1 = getKeyValueDataStore().get(opendlv::system::actuator::Commands::ID());
+        //opendlv::system::actuator::Commands commands = c1.getData<opendlv::system::actuator::Commands>();
 
-        odcore::data::Container c2 = getKeyValueDataStore().get(opendlv::system::sensor::TruckLocation::ID());
-        opendlv::system::sensor::TruckLocation truckLocation = c2.getData<opendlv::system::sensor::TruckLocation>();
+        //odcore::data::Container c2 = getKeyValueDataStore().get(opendlv::system::sensor::TruckLocation::ID());
+        //opendlv::system::sensor::TruckLocation truckLocation = c2.getData<opendlv::system::sensor::TruckLocation>();
 
+        odcore::data::Container getPropulsionShaftVehicleSpeedData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Propulsion::ID());
+        opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeed  = getPropulsionShaftVehicleSpeedData.getData<opendlv::proxy::reverefh16::Propulsion>();
 
-        if (c1.getReceivedTimeStamp().getSeconds() > 0)//if we are actually getting data !
+        odcore::data::Container getRoadwheelangleData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Steering::ID());
+        opendlv::proxy::reverefh16::Steering roadwheelangle = getRoadwheelangleData.getData<opendlv::proxy::reverefh16::Steering>();
+
+        odcore::data::Container gpsData = getKeyValueDataStore().get(opendlv::proxy::GpsReading::ID());
+        opendlv::proxy::GpsReading gpsCoordinate = gpsData.getData<opendlv::proxy::GpsReading>();
+
+        if (gpsData.getReceivedTimeStamp().getSeconds() > 0)//if we are actually getting data !
         {
             if ( !GPSreferenceSET )// the GPS reference is not set, set the GPSreference to the current position
             {
-            m_GPSreference = opendlv::data::environment::WGS84Coordinate(truckLocation.getX(), WGS84Coordinate::NORTH, truckLocation.getY(), WGS84Coordinate::EAST);
+            m_GPSreference = opendlv::data::environment::WGS84Coordinate(gpsCoordinate.getLatitude(), WGS84Coordinate::NORTH, gpsCoordinate.getLongitude(), WGS84Coordinate::EAST);
             GPSreferenceSET = true;
-            m_timeBefore = c1.getReceivedTimeStamp();
-             Udyn.v_y() = truckLocation.getLat_acc();
+            m_timeBefore = gpsData.getReceivedTimeStamp();
+             //Udyn.v_y() = truckLocation.getLat_acc();
             // TODO: now this variable is set only ones using the first data,
             //       it is necessary to write a function able to reset this value to a new reference frame
             }
 
-        m_timeNow = c1.getReceivedTimeStamp();
+        m_timeNow = gpsData.getReceivedTimeStamp();
         odcore::data::TimeStamp duration = m_timeNow - m_timeBefore;
         cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
-        m_timeBefore = c1.getReceivedTimeStamp();
+        m_timeBefore = gpsData.getReceivedTimeStamp();
         delta_t = duration.toMicroseconds()/1000000.0;
 
         // let me out our signal for now to check if we are doing the right processing
-        cout << getName() << ": " << commands.toString() << ", " << truckLocation.toString() << endl;
+        //cout << getName() << ": " << commands.toString() << ", " << truckLocation.toString() << endl;
 
         // Try to convert coordinates
-        WGS84Coordinate WGS84_ptruck(truckLocation.getX(), WGS84Coordinate::NORTH, truckLocation.getY(), WGS84Coordinate::EAST);
-        Point3 _p2 = m_GPSreference.transform(WGS84_ptruck);
+        //WGS84Coordinate WGS84_ptruck(truckLocation.getX(), WGS84Coordinate::NORTH, truckLocation.getY(), WGS84Coordinate::EAST);
+        WGS84Coordinate WGS84_ptruck(gpsCoordinate.getLatitude(), WGS84Coordinate::NORTH, gpsCoordinate.getLongitude(), WGS84Coordinate::EAST);
+        Point3 currentCartesianLocation = m_GPSreference.transform(WGS84_ptruck);
 
         // The csvExporter1 will "visit" the data structure "commands" and iterate
         // through its fields that will be stored in the output file fout.
-        commands.accept(csvExporter1);
+        //commands.accept(csvExporter1);
 
          // set the commands from the opendavinci to the ekf state space
          // cout << getName() << " << message >> \n   CONTROL SIGNALS : u.v = " << U.v() << "  u.phi  = " << U.phi() << endl;
-         U.v() = commands.getLongitudinalVelocity();
-         U.phi() = commands.getSteeringAngle();
-         Udyn.v() = commands.getLongitudinalVelocity();
-         Udyn.phi() = commands.getSteeringAngle();
-         Udyn.yaw_rate() = truckLocation.getYawRate();
-         Udyn.v_y() = (truckLocation.getLat_acc() - Udyn.v_y())/delta_t;
+         U.v() = propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed();
+         U.phi() = roadwheelangle.getRoadwheelangle();
+         Udyn.v() = propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed();
+         Udyn.phi() = roadwheelangle.getRoadwheelangle();
+         Udyn.yaw_rate() = 0;//truckLocation.getYawRate();
+         Udyn.v_y() = 0;// (truckLocation.getLat_acc() - Udyn.v_y())/delta_t;
 
 
          // System measurements
@@ -197,14 +206,22 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
          m_tdmObservationVector Zdyn = dynObservationModel.h(Xdyn);
 
          // set the commands from the opendavinci to the ekf state space
-         Z.Z_x()         =   _p2.getX();//truckLocation.getX();
-         Z.Z_y()         =   _p2.getY();//truckLocation.getY();
-         Z.Z_theta()     =   truckLocation.getYaw();
-         Z.Z_theta_dot( )=   truckLocation.getYawRate();
-         Zdyn.Z_x()         =   _p2.getX();//truckLocation.getX();
-         Zdyn.Z_y()         =   _p2.getY();//truckLocation.getY();
-         Zdyn.Z_theta()     =   truckLocation.getYaw();
-         Zdyn.Z_theta_dot( )=   truckLocation.getYawRate();
+         Z.Z_x()         =   currentCartesianLocation.getX();//truckLocation.getX();
+         Z.Z_y()         =   currentCartesianLocation.getY();//truckLocation.getY();
+         if (gpsCoordinate.getHasHeading())
+            Z.Z_theta()     =   gpsCoordinate.getNorthHeading();
+         else
+             Z.Z_theta() = X.theta();
+
+         Z.Z_theta_dot( )=  0;// truckLocation.getYawRate();
+         Zdyn.Z_x()         =   currentCartesianLocation.getX();//truckLocation.getX();
+         Zdyn.Z_y()         =   currentCartesianLocation.getY();//truckLocation.getY();
+         if (gpsCoordinate.getHasHeading())
+            Zdyn.Z_theta()     =   gpsCoordinate.getNorthHeading();
+         else
+             Zdyn.Z_theta() = Xdyn.theta();
+
+         Zdyn.Z_theta_dot( )=   0;//truckLocation.getYawRate();
          //cout << getName() << " << message >> \n   MEASURES : " << " Z.Z_x()  = " << Z.Z_x() << " Z.Z_y()  = " << Z.Z_y()
          //                  << " Z.Z_theta()  = " << Z.Z_theta() << " Z.Z_theta_dot()  = " << Z.Z_theta_dot()  << endl;
 
@@ -247,7 +264,7 @@ run_vse_test = false;
 m_saveToFile = true;
             if (m_saveToFile){
             fout_ekfState << time_stamp << " "
-                          << truckLocation.getX() << " " << truckLocation.getY() << " " << truckLocation.getYaw() << " " << truckLocation.getYawRate() << " "
+                          << gpsCoordinate.getLatitude() << " " << gpsCoordinate.getLongitude() << " " << gpsCoordinate.getNorthHeading() <<  " "
                           << U.v() << " " << U.phi() << " "
                           << Z.Z_x() << " " << Z.Z_y() << " " << Z.Z_theta() << " " << Z.Z_theta_dot() << " "
                           << X.x() << " " << X.x_dot() << " "  << X.y() << " " << X.y_dot() << " " << X.theta() << " " << X.theta_dot() << " "

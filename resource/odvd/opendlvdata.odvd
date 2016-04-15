@@ -315,7 +315,7 @@ message opendlv.system.actuator.Commands [id = 186] {
   double longitudinalVelocity;
   double steeringAngle;
 }
-
+/*
 message opendlv.system.sensor.TruckLocation [id = 187] {
   double x;
   double y;
@@ -323,4 +323,4 @@ message opendlv.system.sensor.TruckLocation [id = 187] {
   double yawRate;
   double long_acc;
   double lat_acc;
-}
+}*/
