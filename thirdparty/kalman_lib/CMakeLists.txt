@@ -17,8 +17,6 @@
 
 project(opendlv-system-kalmanlib)
 
-include (${CMAKE_SOURCE_DIR}/thirdparty/kalman_lib/macro_list_subdirectories.cmake)
-# Enumerate all subdirs and process them:
 
 SET(THIRDPARTY_BUILD_EKF ON CACHE BOOL "Build the lib EKF")
 MARK_AS_ADVANCED(THIRDPARTY_BUILD_EKF)
