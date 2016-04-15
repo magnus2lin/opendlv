@@ -48,11 +48,12 @@ namespace revere {
             cout << "[dataspy] " << commands.LongName() << ": " << commands.toString() << endl;
             return;
         }
-        if (c.getDataType() == opendlv::system::sensor::TruckLocation::ID()) {
-            opendlv::system::sensor::TruckLocation truckLocation = c.getData<opendlv::system::sensor::TruckLocation>();
-            cout << "[dataspy] " << truckLocation.LongName() << ": " << truckLocation.toString() << endl;
-            return;
-        }
+        //if (c.getDataType() == opendlv::system::sensor::TruckLocation::ID()) {
+        //    opendlv::system::sensor::TruckLocation truckLocation = c.getData<opendlv::system::sensor::TruckLocation>();
+        //    cout << "[dataspy] " << truckLocation.LongName() << ": " << truckLocation.toString() << endl;
+        //    return;
+        //}
+        //this canot work anymore as sensor is not defined - if we need the dataspy we need to adapt the code
 
         cout << "[dataspy] Received container of type " << c.getDataType() << endl;
     }
