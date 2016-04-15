@@ -36,6 +36,7 @@
 # endif
 # pragma GCC diagnostic ignored "-Weffc++"
 # pragma GCC diagnostic ignored "-Wshadow"
+# pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #endif
     #include "ExtendedKalmanFilter.hpp"
     #include "Types.hpp"
