@@ -86,6 +86,11 @@ if("${EIGEN3_INCLUDE_DIR}" STREQUAL "")
 endif()
 
 ###########################################################################
+# Kalman lib
+add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/kalman_lib)
+
+
+###########################################################################
 # Global project variables.
 set(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 message(STATUS "Installing OpenDLV to ${INSTALL_DIR}.")

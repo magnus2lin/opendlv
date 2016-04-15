@@ -15,18 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-project(opendlv-system-libs)
+project(opendlv-system-kalmanlib)
 
-include (${CMAKE_SOURCE_DIR}/libs/macro_list_subdirectories.cmake)
+include (${CMAKE_SOURCE_DIR}/thirdparty/kalman_lib/macro_list_subdirectories.cmake)
 # Enumerate all subdirs and process them:
-list_subdirectories(LIST_LIBS_DIRS "${CMAKE_SOURCE_DIR}/libs")
 
-foreach(dir ${LIST_LIBS_DIRS})
-   SET(VAR_NAME "LIBS_BUILD_${dir}")
-   SET(${VAR_NAME} ON CACHE BOOL "Build the lib ${dir}")
-   MARK_AS_ADVANCED(${VAR_NAME})
+SET(THIRDPARTY_BUILD_EKF ON CACHE BOOL "Build the lib EKF")
+MARK_AS_ADVANCED(THIRDPARTY_BUILD_EKF)
 
-   if (${VAR_NAME})
-      add_subdirectory(${dir})
-   endif (${VAR_NAME})
-endforeach(dir)
+add_subdirectory(EKF)
