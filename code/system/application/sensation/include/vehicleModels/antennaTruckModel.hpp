@@ -16,8 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef COMBINEDTRUCKMODEL_HPP_
-#define COMBINEDTRUCKMODEL_HPP_
+#ifndef ANTENNATRUCKMODEL_HPP_
+#define ANTENNATRUCKMODEL_HPP_
 
 #include <math.h>
 #include "LinearizedSystemModel.hpp"
@@ -27,7 +27,7 @@ namespace opendlv {
 namespace system {
 namespace application {
 namespace sensation{
-namespace combinedTruckModel
+namespace antennaTruckModel
 {
 
 /**
@@ -101,26 +101,30 @@ template<typename T>
 class Control : public opendlv::system::libs::kalman::Vector<T, 4>
 {
 public:
-    KALMAN_VECTOR(Control, T, 4)
+    KALMAN_VECTOR(Control, T, 5)
 
-    //! Longitudinal Velocity
+    //! Longitudinal Velocity (m/s)
     static constexpr size_t V = 0;
-    //! Steering angle
+    //! Steering angle (rad)
     static constexpr size_t PHI = 1;
-    //! Velocity along the y axis in the vehicle reference frame
-    static constexpr size_t V_Y = 1;
-    //! angular velocity of the vehicle in its own reference frame
-    static constexpr size_t YAW_RATE = 1;
+    //! Velocity along the y axis in the vehicle reference frame (m/s)
+    static constexpr size_t V_Y = 2;
+    //! angular velocity of the vehicle in its own reference frame (rad/s)
+    static constexpr size_t YAW_RATE = 3;
+    //! longitudinal acceleration into the vehicle reference frame (m/s^2)
+    static constexpr size_t LONG_ACC = 4;
 
     T v()        const { return (*this)[ V ]; }
     T phi()      const { return (*this)[ PHI ]; }
     T v_y()      const { return (*this)[V_Y]; }
     T yaw_rate() const { return (*this)[YAW_RATE]; }
+    T long_acc() const { return (*this)[LONG_ACC]; }
 
     T& v()        { return (*this)[ V ]; }
     T& phi()      { return (*this)[ PHI ]; }
     T& v_y()      { return (*this)[ V_Y ]; }
     T& yaw_rate() { return (*this)[ YAW_RATE ]; }
+    T& long_acc() { return (*this)[ LONG_ACC ]; }
 
 }; // end - class Control
 
@@ -180,8 +184,8 @@ public:
       double a;           ///--> a = 1;      ///--> distance between the front wheel and the center of mass (default value 1.0) (m)
       double b;           ///--> b = 2.8;    ///--> distance between the rear wheel and the center of mass (default value 2.8) (m)
       double I;           ///--> I = 4000;   ///--> moment of inertia of the truck (default value 4000) (kg m^2)
-
-      vehicleParams() : s1(0.15), s2(0.15), m(2000), a(1.0), b(2.8), I(4000)  {
+      double longComp;    ///--> longComp=0.1  /// period of oscillation of the cabin for the GPS longitudinal compensation (s)
+      vehicleParams() : s1(0.15), s2(0.15), m(2000), a(1.0), b(2.8), I(4000), longComp(0.1)  {
 
       }
 
@@ -273,16 +277,14 @@ public:
 
         }
 
-        double longitudinal_acceleration = 0; //TODO get acc from IMU
-        double p = 0.1; //TODO get a better value of p
 
         // calculate the X - components
         x_p.x() = x.x() + delta_t * x.x_dot();
-        x_p.x_dot() = (u.v() + p * longitudinal_acceleration)*std::cos(x.theta()) - lateral_acceleration * (std::sin(x.theta())) * delta_t;
+        x_p.x_dot() = (u.v() - m_vehicleParams.longComp * u.long_acc())*std::cos(x.theta()) - lateral_acceleration * (std::sin(x.theta())) * delta_t;
 
         // calculate the Y - components
         x_p.y() = x.y() + delta_t * x.y_dot();
-        x_p.y_dot() = (u.v() + p * longitudinal_acceleration)*std::sin(x.theta()) + lateral_acceleration * std::cos(x.theta()) * delta_t;
+        x_p.y_dot() = (u.v() - m_vehicleParams.longComp * u.long_acc())*std::sin(x.theta()) + lateral_acceleration * std::cos(x.theta()) * delta_t;
 
         // calculate the THETA - components
         x_p.theta() = x.theta() + x.theta_dot() * delta_t;
@@ -346,14 +348,14 @@ protected:
         // partial derivative of x.x() w.r.t. x.x_dot()
         this->F( S::X, S::X_DOT ) = delta_t;
         // partial derivative of x.x() w.r.t. x.theta()
-        this->F( S::X_DOT, S::THETA ) = -std::sin( x.theta() ) * u.v() - lateral_acceleration * std::cos(x.theta())* delta_t;
+        this->F( S::X_DOT, S::THETA ) = -std::sin( x.theta() ) * (u.v() + m_vehicleParams.longComp * u.long_acc()) - lateral_acceleration * std::cos(x.theta())* delta_t;
 
         // partial derivative of x.y() w.r.t. x.y()
         this->F( S::Y, S::Y ) = 1;
         // partial derivative of x.y() w.r.t. x.y_dot()
         this->F( S::Y, S::Y_DOT ) = delta_t;
         // partial derivative of x.y() w.r.t. x.theta()
-        this->F( S::Y_DOT, S::THETA ) = std::cos( x.theta() ) * u.v() - lateral_acceleration * std::sin(x.theta()) * delta_t;
+        this->F( S::Y_DOT, S::THETA ) = std::cos( x.theta() ) * (u.v() + m_vehicleParams.longComp * u.long_acc()) - lateral_acceleration * std::sin(x.theta()) * delta_t;
 
         // partial derivative of x.theta() w.r.t. x.theta()
         this->F( S::THETA, S::THETA ) = 1;
@@ -402,7 +404,7 @@ protected:
     //! Variables to handle a variable timestamp in the data
     double delta_t = 0.0;
 };
-} // combinedTruckModel
+} // antennaTruckModel
 } // Sensation
 } // application
 } // system
