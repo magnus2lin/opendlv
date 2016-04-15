@@ -48,9 +48,6 @@ class Act : public odcore::base::module::TimeTriggeredConferenceClientModule {
 
   float m_acceleration;
   float m_steering;
-};
-
-
 
 };
 } // act

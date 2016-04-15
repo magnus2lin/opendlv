@@ -19,8 +19,8 @@ project(opendlv-system-application-sensation)
 
 # Set include directories
 include_directories(include)
-include_directories(${EKF_lib_INCLUDE_DIR})
-
+include_directories(${EKF_lib_INCLUDE_DIR}) # for some reason it does not point to the right folder, set it manually for now
+include_directories("../../../../thirdparty/kalman_lib/EKF/include")
 
 # Set libraries
 set(LIBRARIES ${LIBRARIES})

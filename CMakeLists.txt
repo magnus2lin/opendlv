@@ -88,6 +88,7 @@ endif()
 ###########################################################################
 # Kalman lib
 add_subdirectory(${CMAKE_SOURCE_DIR}/thirdparty/kalman_lib)
+message(STATUS "${CMAKE_SOURCE_DIR}/thirdparty/kalman_lib was supplied.")
 
 
 ###########################################################################
