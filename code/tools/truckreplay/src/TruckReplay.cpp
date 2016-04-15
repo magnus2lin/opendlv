@@ -79,7 +79,7 @@ namespace revere {
                 commands = opendlv::system::actuator::Commands(U_longitudinalVelocity, U_steeringAngle);
             }
 
-            opendlv::system::sensor::TruckLocation truckLocation;
+            /*opendlv::system::sensor::TruckLocation truckLocation;
             {
                 m_fileZ.getline(buffer, MAX_LINE_LENGTH);
                 string fromZ(buffer);
@@ -93,14 +93,14 @@ namespace revere {
                 double Z_lat_acc = 0;
                 sstrFromZ >> Z_time >> Z_x >> Z_y >> Z_yaw >> Z_yawRate >> Z_long_acc >> Z_lat_acc;
                 truckLocation = opendlv::system::sensor::TruckLocation(Z_x, Z_y, Z_yaw, Z_yawRate, Z_long_acc, Z_lat_acc);
-            }
+            } */ // truck location reading from file will not work anymore 
 
             // Distribute data to other modules.
             Container c1(commands);
             getConference().send(c1);
 
-            Container c2(truckLocation);
-            getConference().send(c2);
+            //Container c2(truckLocation);
+            //getConference().send(c2);
         }
 
         return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
