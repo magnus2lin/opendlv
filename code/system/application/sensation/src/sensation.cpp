@@ -135,11 +135,11 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
                   << "% timestamp (s), ground truth: x (m),  y (m), theta (rad), theta_dot(rad/s), commands : velocity (m/s) steering angle (rad), noisy data: x (m), y (m), theta (rad), theta_dot (rad/s), ekf estimation vector: x (m), x_dot (m/s), y (m), y_dot (ms), theta (rad), theta_dot(rad/s)  " << endl;
 
     // You can optionally dump a header (i.e. first line with information).
-    const bool WITH_HEADER = true;
+    //const bool WITH_HEADER = true;
     // You can choose the delimiter character between the fields.
-    const char DELIMITER = ',';
+    //const char DELIMITER = ',';
     // For every data structure that you want to export in a CSV file, you need to create a new CSVFromVisitableVisitor.
-    odcore::reflection::CSVFromVisitableVisitor csvExporter1(fout, WITH_HEADER, DELIMITER);
+    //odcore::reflection::CSVFromVisitableVisitor csvExporter1(fout, WITH_HEADER, DELIMITER);
 
 
     double delta_t = 0;
@@ -161,7 +161,8 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         odcore::data::Container gpsData = getKeyValueDataStore().get(opendlv::proxy::GpsReading::ID());
         opendlv::proxy::GpsReading gpsCoordinate = gpsData.getData<opendlv::proxy::GpsReading>();
 
-       cout << " I am receiving data from gps : "
+       //uncomment for testing purposes
+        /*cout << " I am receiving data from gps : "
             << "     latitude = " << gpsCoordinate.getLatitude() 
             << "     longitude= " << gpsCoordinate.getLongitude() 
             << "     heading =  " << gpsCoordinate.getNorthHeading() << endl;
@@ -169,7 +170,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
        cout << " I am receiving data from can : "
             << "                velocity  = " << propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed()
             << "     steering wheel angle = " << roadwheelangle.getRoadwheelangle() << endl;
-       
+       */
 
         if (gpsData.getReceivedTimeStamp().getSeconds() > 0)//if we are actually getting data !
         {
@@ -237,7 +238,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
          else
              Z.Z_theta() = X.theta();
 
-         Z.Z_theta_dot( )=  0;// truckLocation.getYawRate();
+         Z.Z_theta_dot( )=  gpsCoordinate.getAltitude();// truckLocation.getYawRate();
          Zdyn.Z_x()         =   currentCartesianLocation.getX();//truckLocation.getX();
          Zdyn.Z_y()         =   currentCartesianLocation.getY();//truckLocation.getY();
          if (gpsCoordinate.getHasHeading())
@@ -245,7 +246,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
          else
              Zdyn.Z_theta() = Xdyn.theta();
 
-         Zdyn.Z_theta_dot( )=   0;//truckLocation.getYawRate();
+         Zdyn.Z_theta_dot( )=   gpsCoordinate.getAltitude();//truckLocation.getYawRate();
          //cout << getName() << " << message >> \n   MEASURES : " << " Z.Z_x()  = " << Z.Z_x() << " Z.Z_y()  = " << Z.Z_y()
          //                  << " Z.Z_theta()  = " << Z.Z_theta() << " Z.Z_theta_dot()  = " << Z.Z_theta_dot()  << endl;
 
@@ -261,11 +262,13 @@ run_vse_test = false;
 
          if (EKF_initialized) // if the filter is not initialze - initialize it first
          {
-             std::cout << "Sensation::initializeEKF  << message >> Filter initialized " << std::endl;
+             //std::cout << "Sensation::initializeEKF  << message >> Filter initialized " << std::endl;
 
              // update the timestamp - give the time in seconds
              sys.updateDeltaT(delta_t);
              sys_dyn.updateDeltaT(delta_t);
+             std::cout << "Sensation::body  << message >> time updated " << sys.getDeltaT() << std::endl;
+             std::cout << "Sensation::body  << message >> time updated " << sys_dyn.getDeltaT() << std::endl;
 
              // Predict state for current time-step using the filters
              X = m_ekf.predict(sys, U);
@@ -303,6 +306,9 @@ m_saveToFile = true;
          }
 
       }// end if we are getting data
+        else {
+            std::cout << getName() << " << message >> Filter - NO DATA ! " << std::endl;
+        }
     }// end while
     return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
 }

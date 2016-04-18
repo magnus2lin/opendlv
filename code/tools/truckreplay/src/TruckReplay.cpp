@@ -79,24 +79,16 @@ namespace revere {
 
 
             opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeedData;
-            {
-                m_fileU.getline(buffer, MAX_LINE_LENGTH);
-                string fromU(buffer);
-                stringstream sstrFromU(fromU);
-                double U_time = 0;
-                double U_longitudinalVelocity = 0;
-                sstrFromU >> U_time >> U_longitudinalVelocity ;
-                propulsionShaftVehicleSpeedData.setPropulsionShaftVehicleSpeed( U_longitudinalVelocity );
-            }
-
             opendlv::proxy::reverefh16::Steering roadwheelangleData;
             {
                 m_fileU.getline(buffer, MAX_LINE_LENGTH);
                 string fromU(buffer);
                 stringstream sstrFromU(fromU);
                 double U_time = 0;
+                double U_longitudinalVelocity = 0;
                 double U_steeringAngle = 0;
-                sstrFromU >> U_time >> U_steeringAngle;
+                sstrFromU >> U_time >> U_longitudinalVelocity >> U_steeringAngle ;
+                propulsionShaftVehicleSpeedData.setPropulsionShaftVehicleSpeed( U_longitudinalVelocity );
                 roadwheelangleData.setRoadwheelangle(U_steeringAngle);
             }
 
@@ -118,10 +110,13 @@ namespace revere {
                 gpsData.setTimestamp(Z_time);
                 gpsData.setLatitude(Z_lat);
                 gpsData.setLongitude(Z_long);
+                gpsData.setAltitude(Z_yawRate);  //this is just a trick I use for test purposes ! TODO: take it out !
                 gpsData.setNorthHeading(Z_yaw);
                 gpsData.setHasHeading(true);
 
             }
+
+
 
             // deprecated !
            /* opendlv::system::actuator::Commands commands;
