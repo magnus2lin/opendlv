@@ -202,11 +202,25 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         //commands.accept(csvExporter1);
 
          // set the commands from the opendavinci to the ekf state space
-         // cout << getName() << " << message >> \n   CONTROL SIGNALS : u.v = " << U.v() << "  u.phi  = " << U.phi() << endl;
-         U.v() = propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed();
-         U.phi() = roadwheelangle.getRoadwheelangle();
-         Udyn.v() = propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed();
-         Udyn.phi() = roadwheelangle.getRoadwheelangle();
+        if (getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp().getSeconds() > 0) {//if we are actually getting data !
+               U.v() = propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed();
+               Udyn.v() = propulsionShaftVehicleSpeed.getPropulsionShaftVehicleSpeed();
+        }
+        else {
+               U.v() = U.v(); // get the last imput data   -- find a policy for that
+               Udyn.v() = Udyn.v();
+        }
+
+        if (getRoadwheelangleData.getReceivedTimeStamp().getSeconds() > 0) {//if we are actually getting data !
+                U.phi() = roadwheelangle.getRoadwheelangle();
+                Udyn.phi() = roadwheelangle.getRoadwheelangle();
+         }
+         else {
+                U.phi() = U.phi(); // get the last imput data   -- find a policy for that
+                Udyn.phi() = Udyn.phi();
+        }
+
+         // TODO handle IMU data
          Udyn.yaw_rate() = 0;//truckLocation.getYawRate();
          Udyn.v_y() = 0;// (truckLocation.getLat_acc() - Udyn.v_y())/delta_t;
 
