@@ -43,17 +43,22 @@ namespace revere {
     void DataSpy::tearDown() {}
 
     void DataSpy::nextContainer(odcore::data::Container &c) {
-        if (c.getDataType() == opendlv::system::actuator::Commands::ID()) {
-            opendlv::system::actuator::Commands commands = c.getData<opendlv::system::actuator::Commands>();
-            cout << "[dataspy] " << commands.LongName() << ": " << commands.toString() << endl;
+        if (c.getDataType() == opendlv::proxy::reverefh16::Propulsion::ID()) {
+            opendlv::proxy::reverefh16::Propulsion data = c.getData<opendlv::proxy::reverefh16::Propulsion>();
+            cout << "[dataspy] " << data.LongName() << ": " << data.toString() << endl;
             return;
         }
-        //if (c.getDataType() == opendlv::system::sensor::TruckLocation::ID()) {
-        //    opendlv::system::sensor::TruckLocation truckLocation = c.getData<opendlv::system::sensor::TruckLocation>();
-        //    cout << "[dataspy] " << truckLocation.LongName() << ": " << truckLocation.toString() << endl;
-        //    return;
-        //}
-        //this canot work anymore as sensor is not defined - if we need the dataspy we need to adapt the code
+        if (c.getDataType() == opendlv::proxy::reverefh16::Steering::ID()) {
+            opendlv::proxy::reverefh16::Steering data = c.getData<opendlv::proxy::reverefh16::Steering>();
+            cout << "[dataspy] " << data.LongName() << ": " << data.toString() << endl;
+            return;
+        }
+        if (c.getDataType() == opendlv::proxy::GpsReading::ID()) {
+            opendlv::proxy::GpsReading data = c.getData<opendlv::proxy::GpsReading>();
+            cout << "[dataspy] " << data.LongName() << ": " << data.toString() << endl;
+            return;
+        }
+
 
         cout << "[dataspy] Received container of type " << c.getDataType() << endl;
     }

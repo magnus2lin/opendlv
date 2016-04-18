@@ -67,7 +67,64 @@ namespace revere {
         char buffer[MAX_LINE_LENGTH];
 
         while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
-            opendlv::system::actuator::Commands commands;
+
+            //odcore::data::Container getPropulsionShaftVehicleSpeedData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Propulsion::ID());
+            //opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeed  = getPropulsionShaftVehicleSpeedData.getData<opendlv::proxy::reverefh16::Propulsion>();
+
+            //odcore::data::Container getRoadwheelangleData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Steering::ID());
+            //opendlv::proxy::reverefh16::Steering roadwheelangle = getRoadwheelangleData.getData<opendlv::proxy::reverefh16::Steering>();
+
+            //odcore::data::Container gpsData = getKeyValueDataStore().get(opendlv::proxy::GpsReading::ID());
+            //opendlv::proxy::GpsReading gpsCoordinate = gpsData.getData<opendlv::proxy::GpsReading>();
+
+
+            opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeedData;
+            {
+                m_fileU.getline(buffer, MAX_LINE_LENGTH);
+                string fromU(buffer);
+                stringstream sstrFromU(fromU);
+                double U_time = 0;
+                double U_longitudinalVelocity = 0;
+                sstrFromU >> U_time >> U_longitudinalVelocity ;
+                propulsionShaftVehicleSpeedData.setPropulsionShaftVehicleSpeed( U_longitudinalVelocity );
+            }
+
+            opendlv::proxy::reverefh16::Steering roadwheelangleData;
+            {
+                m_fileU.getline(buffer, MAX_LINE_LENGTH);
+                string fromU(buffer);
+                stringstream sstrFromU(fromU);
+                double U_time = 0;
+                double U_steeringAngle = 0;
+                sstrFromU >> U_time >> U_steeringAngle;
+                roadwheelangleData.setRoadwheelangle(U_steeringAngle);
+            }
+
+            opendlv::proxy::GpsReading gpsData;
+            {
+
+                m_fileZ.getline(buffer, MAX_LINE_LENGTH);
+                string fromZ(buffer);
+                stringstream sstrFromZ(fromZ);
+                double Z_time = 0;
+                double Z_lat = 0;
+                double Z_long = 0;
+                double Z_yaw = 0;
+                double Z_yawRate = 0;
+                double Z_long_acc = 0;
+                double Z_lat_acc = 0;
+                sstrFromZ >> Z_time >> Z_lat >> Z_long >> Z_yaw >> Z_yawRate >> Z_long_acc >> Z_lat_acc;
+
+                gpsData.setTimestamp(Z_time);
+                gpsData.setLatitude(Z_lat);
+                gpsData.setLongitude(Z_long);
+                gpsData.setNorthHeading(Z_yaw);
+                gpsData.setHasHeading(true);
+
+            }
+
+            // deprecated !
+           /* opendlv::system::actuator::Commands commands;
             {
                 m_fileU.getline(buffer, MAX_LINE_LENGTH);
                 string fromU(buffer);
@@ -77,7 +134,7 @@ namespace revere {
                 double U_steeringAngle = 0;
                 sstrFromU >> U_time >> U_longitudinalVelocity >> U_steeringAngle;
                 commands = opendlv::system::actuator::Commands(U_longitudinalVelocity, U_steeringAngle);
-            }
+            }*/
 
             /*opendlv::system::sensor::TruckLocation truckLocation;
             {
@@ -96,11 +153,15 @@ namespace revere {
             } */ // truck location reading from file will not work anymore 
 
             // Distribute data to other modules.
-            Container c1(commands);
+            Container c1(propulsionShaftVehicleSpeedData);
             getConference().send(c1);
 
-            //Container c2(truckLocation);
-            //getConference().send(c2);
+            Container c2(roadwheelangleData);
+            getConference().send(c2);
+
+            Container c3(gpsData);
+            getConference().send(c3);
+
         }
 
         return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
