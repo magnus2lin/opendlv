@@ -66,6 +66,8 @@ namespace revere {
         const uint32_t MAX_LINE_LENGTH = 2000;
         char buffer[MAX_LINE_LENGTH];
 
+        double failure_probability = 0.2;   //this means 5% of possible failures
+        double fail = 1;
         while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
             //odcore::data::Container getPropulsionShaftVehicleSpeedData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Propulsion::ID());
@@ -77,7 +79,8 @@ namespace revere {
             //odcore::data::Container gpsData = getKeyValueDataStore().get(opendlv::proxy::GpsReading::ID());
             //opendlv::proxy::GpsReading gpsCoordinate = gpsData.getData<opendlv::proxy::GpsReading>();
 
-
+            if (fail > failure_probability)   // if we are not failing
+            {
             opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeedData;
             opendlv::proxy::reverefh16::Steering roadwheelangleData;
             {
@@ -114,48 +117,26 @@ namespace revere {
                 gpsData.setNorthHeading(Z_yaw);
                 gpsData.setHasHeading(true);
 
+                // Distribute data to other modules.
+                Container c1(propulsionShaftVehicleSpeedData);
+                getConference().send(c1);
+
+                Container c2(roadwheelangleData);
+                getConference().send(c2);
+
+                Container c3(gpsData);
+                getConference().send(c3);
+
+                fail = ((double) rand() / (RAND_MAX));
             }
-
-
-
-            // deprecated !
-           /* opendlv::system::actuator::Commands commands;
+            }
+            else  // otherwise it will just get a line from the file without filling the container
             {
                 m_fileU.getline(buffer, MAX_LINE_LENGTH);
-                string fromU(buffer);
-                stringstream sstrFromU(fromU);
-                double U_time = 0;
-                double U_longitudinalVelocity = 0;
-                double U_steeringAngle = 0;
-                sstrFromU >> U_time >> U_longitudinalVelocity >> U_steeringAngle;
-                commands = opendlv::system::actuator::Commands(U_longitudinalVelocity, U_steeringAngle);
-            }*/
-
-            /*opendlv::system::sensor::TruckLocation truckLocation;
-            {
                 m_fileZ.getline(buffer, MAX_LINE_LENGTH);
-                string fromZ(buffer);
-                stringstream sstrFromZ(fromZ);
-                double Z_time = 0;
-                double Z_x = 0;
-                double Z_y = 0;
-                double Z_yaw = 0;
-                double Z_yawRate = 0;
-                double Z_long_acc = 0;
-                double Z_lat_acc = 0;
-                sstrFromZ >> Z_time >> Z_x >> Z_y >> Z_yaw >> Z_yawRate >> Z_long_acc >> Z_lat_acc;
-                truckLocation = opendlv::system::sensor::TruckLocation(Z_x, Z_y, Z_yaw, Z_yawRate, Z_long_acc, Z_lat_acc);
-            } */ // truck location reading from file will not work anymore 
+                fail = ((double) rand() / (RAND_MAX));
+            }
 
-            // Distribute data to other modules.
-            Container c1(propulsionShaftVehicleSpeedData);
-            getConference().send(c1);
-
-            Container c2(roadwheelangleData);
-            getConference().send(c2);
-
-            Container c3(gpsData);
-            getConference().send(c3);
 
         }
 

@@ -94,6 +94,9 @@ class Sensation : public odcore::base::module::TimeTriggeredConferenceClientModu
     virtual ~Sensation();
     odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
+
+
+
   /**
     * use this to run the VSE in test, _run_vse_test = true -- add noise generator,   _run_vse_test = no noise generator
     */
@@ -164,6 +167,10 @@ class Sensation : public odcore::base::module::TimeTriggeredConferenceClientModu
     bool EKF_initialized;     ///--> false by default, it is set to true after the initialization
     odcore::data::TimeStamp   m_timeBefore;  ///--> contains the time in microsecons between two consecutive steps of EKF, default value = 0.05s -- 20 Hz
     odcore::data::TimeStamp   m_timeNow;     ///--> contains the time in microsecons between two consecutive steps of EKF, default value = 0.05s -- 20 Hz
+
+    long lastDataTime;   ///--> store the time we have received the last data in order to run the filter only if the current run is the real "next" run
+
+
 
     opendlv::data::environment::WGS84Coordinate m_GPSreference;
     bool GPSreferenceSET;      ///--> false by default, set to true when the variable m_GPSreference is set to a new reference poit considered as origin of the axis

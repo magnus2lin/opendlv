@@ -64,9 +64,11 @@ Sensation::Sensation(int32_t const &a_argc, char **a_argv) :
     run_vse_test(false),
     m_saveToFile (false),
     EKF_initialized(false),
-    m_timeBefore(),
-    m_timeNow(),
-    m_GPSreference(57.71278, opendlv::data::environment::WGS84Coordinate::NORTH, 11.94581583, opendlv::data::environment::WGS84Coordinate::EAST), // initialize to some coordinate in Sweden
+    m_timeBefore( ),
+    m_timeNow( ),
+    lastDataTime(0), // initialized to zero
+    m_GPSreference(57.71278, opendlv::data::environment::WGS84Coordinate::NORTH,
+                   11.94581583, opendlv::data::environment::WGS84Coordinate::EAST), // initialize to some coordinate in Sweden
     GPSreferenceSET(false)
 
 {
@@ -97,6 +99,10 @@ void Sensation::tearDown()
   // This method will be call automatically _after_ return from body().
 }
 
+
+
+
+
 odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
     // Example on how to use the type WGS84Coordinate:
 
@@ -104,35 +110,33 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
 
 
 
-
-
-
         // First, you need to declare a lat/lon coordinate to be used
         // as reference (i.e. origin (0, 0) of a Cartesian coordinate
         // frame); in our example, we use one located at AstaZero.
         //WGS84Coordinate reference(57.77284043, WGS84Coordinate::NORTH, 12.76996356, WGS84Coordinate::EAST);
-          WGS84Coordinate reference(57.71278, WGS84Coordinate::NORTH, 11.94581583, WGS84Coordinate::EAST);
+        //  WGS84Coordinate reference(57.71278, WGS84Coordinate::NORTH, 11.94581583, WGS84Coordinate::EAST);
         // Let's assume you have another lat/lon coordinate at hand.
-        WGS84Coordinate WGS84_p2(57.71278, WGS84Coordinate::NORTH, 11.94581583, WGS84Coordinate::EAST);
+        //WGS84Coordinate WGS84_p2(57.71278, WGS84Coordinate::NORTH, 11.94581583, WGS84Coordinate::EAST);
 
         // Now, you can transform this new lat/lon coordinate to the
         // previously specified Cartesian reference frame.
-        Point3 cartesian_p2 = reference.transform(WGS84_p2);
-        std::cout << "WGS84 reference: " << reference.toString()
-                  << ", other WGS84 coordinate: " << WGS84_p2.toString()
-                  << ", transformed cartesian coordinate: " << cartesian_p2.toString()
-                  << std::endl;
+        //Point3 cartesian_p2 = reference.transform(WGS84_p2);
+        //std::cout << "WGS84 reference: " << reference.toString()
+        //          << ", other WGS84 coordinate: " << WGS84_p2.toString()
+        //          << ", transformed cartesian coordinate: " << cartesian_p2.toString()
+        //          << std::endl;
         // You can access the X, Y coordinates (Z==0) as follows:
-        double p2_x = cartesian_p2.getX();
-        double p2_y = cartesian_p2.getY();
-        std::cout << "X = " << p2_x << ", Y = " << p2_y << std::endl;
+        //double p2_x = cartesian_p2.getX();
+        //double p2_y = cartesian_p2.getY();
+        //std::cout << "X = " << p2_x << ", Y = " << p2_y << std::endl;
 
 
     // To dump data structures into a CSV file, you create an output file first.
-    std::ofstream fout("../Exp_data/output.csv");
+    // std::ofstream fout("../Exp_data/output.csv");
     std::ofstream fout_ekfState("../Exp_data/output_ekf.csv");
-    fout_ekfState << "% HEADER: Output of the Extended Kalman Filter, data format : \n"
-                  << "% timestamp (s), ground truth: x (m),  y (m), theta (rad), theta_dot(rad/s), commands : velocity (m/s) steering angle (rad), noisy data: x (m), y (m), theta (rad), theta_dot (rad/s), ekf estimation vector: x (m), x_dot (m/s), y (m), y_dot (ms), theta (rad), theta_dot(rad/s)  " << endl;
+    fout_ekfState << "%HEADER: Output of the Extended Kalman Filter, data format : \n"
+                  << "%timestamp (s), ground truth: x (m),  y (m), theta (rad), theta_dot(rad/s), commands : velocity (m/s) steering angle (rad), noisy data: x (m), y (m), theta (rad), theta_dot (rad/s), ekf estimation vector: x (m), x_dot (m/s), y (m), y_dot (ms), theta (rad), theta_dot(rad/s)  \n"
+                  << "%t lat long yaw long_vel wheels_angle Z_x Z_y Z_theta Z_theta_dot HAS_DATA X_x X_x_dot X_y X_y_dot X_theta X_theta_dot X_x_dyn X_x_dot_dyn X_y_dyn X_y_dot_dyn X_theta_dyn X_theta_dot_dyn " << endl;
 
     // You can optionally dump a header (i.e. first line with information).
     //const bool WITH_HEADER = true;
@@ -146,11 +150,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
     double time_stamp = 0;
 
     while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
-        //odcore::data::Container c1 = getKeyValueDataStore().get(opendlv::system::actuator::Commands::ID());
-        //opendlv::system::actuator::Commands commands = c1.getData<opendlv::system::actuator::Commands>();
 
-        //odcore::data::Container c2 = getKeyValueDataStore().get(opendlv::system::sensor::TruckLocation::ID());
-        //opendlv::system::sensor::TruckLocation truckLocation = c2.getData<opendlv::system::sensor::TruckLocation>();
 
         odcore::data::Container getPropulsionShaftVehicleSpeedData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Propulsion::ID());
         opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeed  = getPropulsionShaftVehicleSpeedData.getData<opendlv::proxy::reverefh16::Propulsion>();
@@ -172,29 +172,31 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
             << "     steering wheel angle = " << roadwheelangle.getRoadwheelangle() << endl;
        */
 
-        if (gpsData.getReceivedTimeStamp().getSeconds() > 0)//if we are actually getting data !
+        if (gpsData.getReceivedTimeStamp().toMicroseconds() > 0)//if we are actually getting data !
         {
+
+        //this will run only ones to set the origin of the reference frame
             if ( !GPSreferenceSET )// the GPS reference is not set, set the GPSreference to the current position
             {
-            m_GPSreference = opendlv::data::environment::WGS84Coordinate(gpsCoordinate.getLatitude(), WGS84Coordinate::NORTH, gpsCoordinate.getLongitude(), WGS84Coordinate::EAST);
+            m_GPSreference = opendlv::data::environment::WGS84Coordinate( gpsData.getData<opendlv::proxy::GpsReading>().getLatitude(),  opendlv::data::environment::WGS84Coordinate::NORTH,
+                                                                          gpsData.getData<opendlv::proxy::GpsReading>().getLongitude(), opendlv::data::environment::WGS84Coordinate::EAST);
             GPSreferenceSET = true;
             m_timeBefore = gpsData.getReceivedTimeStamp();
-             //Udyn.v_y() = truckLocation.getLat_acc();
             // TODO: now this variable is set only ones using the first data,
             //       it is necessary to write a function able to reset this value to a new reference frame
             }
 
+
         m_timeNow = gpsData.getReceivedTimeStamp();
         odcore::data::TimeStamp duration = m_timeNow - m_timeBefore;
-        cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
+        //cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
         m_timeBefore = gpsData.getReceivedTimeStamp();
-        delta_t = duration.toMicroseconds()/1000000.0;
+        delta_t = duration.toMicroseconds()/1000000.0;  //delta_t is in seconds
 
         // let me out our signal for now to check if we are doing the right processing
-        //cout << getName() << ": " << commands.toString() << ", " << truckLocation.toString() << endl;
+        // cout << getName() << ": " << commands.toString() << ", " << truckLocation.toString() << endl;
 
-        // Try to convert coordinates
-        //WGS84Coordinate WGS84_ptruck(truckLocation.getX(), WGS84Coordinate::NORTH, truckLocation.getY(), WGS84Coordinate::EAST);
+        // converts coordinates
         WGS84Coordinate WGS84_ptruck(gpsCoordinate.getLatitude(), WGS84Coordinate::NORTH, gpsCoordinate.getLongitude(), WGS84Coordinate::EAST);
         Point3 currentCartesianLocation = m_GPSreference.transform(WGS84_ptruck);
 
@@ -273,11 +275,19 @@ run_vse_test = false;
              // Predict state for current time-step using the filters
              X = m_ekf.predict(sys, U);
              Xdyn = m_dyn_ekf.predict(sys_dyn, Udyn);
-
-
+int hasData = 0;
+if (gpsData.getReceivedTimeStamp().toMicroseconds() > lastDataTime)
+   {
              // update stage of the EKF
              X = m_ekf.update(observationModel, Z);
             Xdyn = m_dyn_ekf.update(dynObservationModel, Zdyn);
+            hasData = 1;
+    }
+else {
+    hasData = 0;}
+
+// store the current instant for the next iteration
+lastDataTime = gpsData.getReceivedTimeStamp().toMicroseconds();
 
  time_stamp+=sys.getDeltaT();
          // Print to stdout as csv format
@@ -293,11 +303,15 @@ m_saveToFile = true;
             fout_ekfState << time_stamp << " "
                           << gpsCoordinate.getLatitude() << " " << gpsCoordinate.getLongitude() << " " << gpsCoordinate.getNorthHeading() <<  " "
                           << U.v() << " " << U.phi() << " "
-                          << Z.Z_x() << " " << Z.Z_y() << " " << Z.Z_theta() << " " << Z.Z_theta_dot() << " "
+                          << Z.Z_x() << " " << Z.Z_y() << " " << Z.Z_theta() << " " << Z.Z_theta_dot() << " " << hasData << " "
                           << X.x() << " " << X.x_dot() << " "  << X.y() << " " << X.y_dot() << " " << X.theta() << " " << X.theta_dot() << " "
                           << Xdyn.x() << " " << Xdyn.x_dot() << " " << Xdyn.y() << " "  << Xdyn.y_dot() << " " <<  Xdyn.theta() << " " << Xdyn.theta_dot()
                           << endl;
             }
+
+
+            //TODO:: probably we need to send back the actual filtered GPS data including orientation - should I fill a container here?
+
 
          }
          else
@@ -307,7 +321,7 @@ m_saveToFile = true;
 
       }// end if we are getting data
         else {
-            std::cout << getName() << " << message >> Filter - NO DATA ! " << std::endl;
+            std::cout << getName() << " << message >> Filter -                                                             NO DATA ! " << std::endl;
         }
     }// end while
     return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
