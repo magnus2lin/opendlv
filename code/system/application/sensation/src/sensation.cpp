@@ -181,16 +181,16 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
             m_GPSreference = opendlv::data::environment::WGS84Coordinate( gpsData.getData<opendlv::proxy::GpsReading>().getLatitude(),  opendlv::data::environment::WGS84Coordinate::NORTH,
                                                                           gpsData.getData<opendlv::proxy::GpsReading>().getLongitude(), opendlv::data::environment::WGS84Coordinate::EAST);
             GPSreferenceSET = true;
-            m_timeBefore = gpsData.getReceivedTimeStamp();
+            m_timeBefore = getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
             // TODO: now this variable is set only ones using the first data,
             //       it is necessary to write a function able to reset this value to a new reference frame
             }
 
 
-        m_timeNow = gpsData.getReceivedTimeStamp();
+        m_timeNow = getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
         odcore::data::TimeStamp duration = m_timeNow - m_timeBefore;
         //cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
-        m_timeBefore = gpsData.getReceivedTimeStamp();
+        m_timeBefore = getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
         delta_t = duration.toMicroseconds()/1000000.0;  //delta_t is in seconds
 
         // let me out our signal for now to check if we are doing the right processing

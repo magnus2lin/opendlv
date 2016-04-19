@@ -66,8 +66,10 @@ namespace revere {
         const uint32_t MAX_LINE_LENGTH = 2000;
         char buffer[MAX_LINE_LENGTH];
 
-        double failure_probability = 0.2;   //this means 5% of possible failures
+        double failure_probability = 0.1;   //this means 5% of possible failures
         double fail = 1;
+        int counter_failure_lenght = 0;
+        int MAX_NUMBER_OF_FAILURES = 40; // at 20hz it corresponds to 2secs
         while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
             //odcore::data::Container getPropulsionShaftVehicleSpeedData = getKeyValueDataStore().get(opendlv::proxy::reverefh16::Propulsion::ID());
@@ -127,15 +129,42 @@ namespace revere {
                 Container c3(gpsData);
                 getConference().send(c3);
 
+
                 fail = ((double) rand() / (RAND_MAX));
+
             }
             }
             else  // otherwise it will just get a line from the file without filling the container
             {
-                m_fileU.getline(buffer, MAX_LINE_LENGTH);
+                opendlv::proxy::reverefh16::Propulsion propulsionShaftVehicleSpeedData;
+                opendlv::proxy::reverefh16::Steering roadwheelangleData;
+                {
+                    m_fileU.getline(buffer, MAX_LINE_LENGTH);
+                    string fromU(buffer);
+                    stringstream sstrFromU(fromU);
+                    double U_time = 0;
+                    double U_longitudinalVelocity = 0;
+                    double U_steeringAngle = 0;
+                    sstrFromU >> U_time >> U_longitudinalVelocity >> U_steeringAngle ;
+                    propulsionShaftVehicleSpeedData.setPropulsionShaftVehicleSpeed( U_longitudinalVelocity );
+                    roadwheelangleData.setRoadwheelangle(U_steeringAngle);
+                }
+                //send only the containers refering to internal can signals
+                Container c1(propulsionShaftVehicleSpeedData);
+                getConference().send(c1);
+
+                Container c2(roadwheelangleData);
+                getConference().send(c2);
+
+
                 m_fileZ.getline(buffer, MAX_LINE_LENGTH);
+
+
+                if (counter_failure_lenght < MAX_NUMBER_OF_FAILURES) counter_failure_lenght++;
+                else{counter_failure_lenght = 0;
                 fail = ((double) rand() / (RAND_MAX));
-            }
+                }
+           }
 
 
         }
