@@ -187,13 +187,10 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
             }
 
 
-        m_timeNow = odcore::data::TimeStamp();//getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
-//        m_timeNow = odcore::data::TimeStamp::toMicroseconds();
-
+        m_timeNow = odcore::data::TimeStamp();
         odcore::data::TimeStamp duration = m_timeNow - m_timeBefore;
         //cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
-        m_timeBefore = m_timeNow;//getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
-        //m_timeBefore = odcore::data::TimeStamp::get;
+        m_timeBefore = m_timeNow;
         delta_t = duration.toMicroseconds()/1000000.0;  //delta_t is in seconds
 
         // let me out our signal for now to check if we are doing the right processing
@@ -255,7 +252,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
          //cout << getName() << " << message >> \n   MEASURES : " << " Z.Z_x()  = " << Z.Z_x() << " Z.Z_y()  = " << Z.Z_y()
          //                  << " Z.Z_theta()  = " << Z.Z_theta() << " Z.Z_theta_dot()  = " << Z.Z_theta_dot()  << endl;
 
-run_vse_test = false;
+         run_vse_test = false;
          if (run_vse_test) // if run test is true we are running a test and it will add noise to the measures
          {
              Z.Z_x() += measurementNoise_x * noise(generator);
@@ -278,22 +275,23 @@ run_vse_test = false;
              // Predict state for current time-step using the filters
              X = m_ekf.predict(sys, U);
              Xdyn = m_dyn_ekf.predict(sys_dyn, Udyn);
-int hasData = 0;
-if (gpsData.getReceivedTimeStamp().toMicroseconds() > lastDataTime)
-   {
-             // update stage of the EKF
-             X = m_ekf.update(observationModel, Z);
-            Xdyn = m_dyn_ekf.update(dynObservationModel, Zdyn);
-            hasData = 1;
-    }
-else {
-    hasData = 0;}
 
-// store the current instant for the next iteration
-lastDataTime = gpsData.getReceivedTimeStamp().toMicroseconds();
+            int hasData = 0;  // we now if the data we are saving to file is a pure prediction or a filtered data
+            if (gpsData.getReceivedTimeStamp().toMicroseconds() > lastDataTime)
+               {
+                 // update stage of the EKF
+                 X = m_ekf.update(observationModel, Z);
+                 Xdyn = m_dyn_ekf.update(dynObservationModel, Zdyn);
+                 hasData = 1;
+                }
+            else {
+                hasData = 0;}
 
- time_stamp+=sys.getDeltaT();
-         // Print to stdout as csv format
+            // store the current instant for the next iteration
+            lastDataTime = gpsData.getReceivedTimeStamp().toMicroseconds();
+
+             time_stamp+=sys.getDeltaT();
+           // Print to stdout
             std::cout   << getName() << " << message >> STATE \n"
                         << "timestamp = " << time_stamp << "\n"
                         << "           x " << X.x() << ", y " << X.y() << ", theta " << X.theta()  << "\n"
@@ -301,7 +299,7 @@ lastDataTime = gpsData.getReceivedTimeStamp().toMicroseconds();
                         << std::endl;
 
             //save data to file
-m_saveToFile = true;
+            m_saveToFile = true;
             if (m_saveToFile){
             fout_ekfState << time_stamp << " "
                           << gpsCoordinate.getLatitude() << " " << gpsCoordinate.getLongitude() << " " << gpsCoordinate.getNorthHeading() <<  " "
