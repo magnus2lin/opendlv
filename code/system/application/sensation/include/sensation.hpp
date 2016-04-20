@@ -44,6 +44,9 @@
     #include "vehicleModels/truckObservationModel.hpp"
     #include "vehicleModels/combinedTruckModel.hpp"
     #include "vehicleModels/combinedTruckObservationModel.hpp"
+    #include "vehicleModels/antennaTruckModel.hpp"
+    #include "vehicleModels/antenna2TruckModel.hpp"
+    #include "vehicleModels/antennaTruckObservationModel.hpp"
 #ifndef WIN32
 # if !defined(__OpenBSD__) && !defined(__NetBSD__)
 #  pragma GCC diagnostic pop

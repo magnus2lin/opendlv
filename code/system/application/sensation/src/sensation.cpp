@@ -187,10 +187,13 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
             }
 
 
-        m_timeNow = getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
+        m_timeNow = odcore::data::TimeStamp();//getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
+//        m_timeNow = odcore::data::TimeStamp::toMicroseconds();
+
         odcore::data::TimeStamp duration = m_timeNow - m_timeBefore;
         //cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
-        m_timeBefore = getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
+        m_timeBefore = m_timeNow;//getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
+        //m_timeBefore = odcore::data::TimeStamp::get;
         delta_t = duration.toMicroseconds()/1000000.0;  //delta_t is in seconds
 
         // let me out our signal for now to check if we are doing the right processing
