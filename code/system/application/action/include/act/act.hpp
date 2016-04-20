@@ -21,6 +21,7 @@
 #define ACT_ACT_HPP_
 
 #include <memory>
+#include <cstring>
 
 #include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
 #include "opendavinci/odcore/data/Container.h"
@@ -47,6 +48,11 @@ class Act : public odcore::base::module::TimeTriggeredConferenceClientModule {
 
   float m_acceleration;
   float m_steering;
+  float deltaTime;
+  float startTimeVector[];
+  float amplitudeVector[];
+  string typeVector[];
+  int counter;
 };
 
 } // act

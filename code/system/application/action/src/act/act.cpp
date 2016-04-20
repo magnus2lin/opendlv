@@ -42,7 +42,11 @@ namespace act {
 Act::Act(int32_t const &a_argc, char **a_argv)
     : TimeTriggeredConferenceClientModule(a_argc, a_argv, "action-act"),
     m_acceleration(-2.0f),
-    m_steering(0.0f)
+    m_steering(0.0f),
+    deltaTime(0.5f),
+    startTimeVector[],
+    amplitudeVector[],
+    counter(0)
 {
 }
 
@@ -79,17 +83,33 @@ void Act::nextContainer(odcore::data::Container &c)
 
     odcore::data::TimeStamp t0 = correction.getStartTime();
     std::string type = correction.getType();
-    //bool isInhibitory = correction.getIsInhibitory();
+    bool isInhibitory = correction.getIsInhibitory();
     float amplitude = correction.getAmplitude();
 
+    if (isInhibitory) {
+      startTimeVector.clear;
+      amplitudeVector.clear;
+      counter = 0;
+    }
+
+    startTimeVector[counter] = t0;
+    amplitudeVector[counter] = amplitude;
+    
+ 
     if (type == "accelerate") {
-     // std::cout << "accelerate: " << amplitude << std::endl;
+      //std::cout << "accelerate: " << amplitude << std::endl;
+      angleOut=amplitudeVector[counter]*deltaTime/25;
+      
+      
+
+
       m_acceleration = amplitude;
     } else if (type == "brake") {
       std::cout << "brake: " << amplitude << std::endl;
     } else if (type == "steering") {
       std::cout << "steering: " << amplitude << std::endl;
     }
+    counter++;
   }
 }
 
