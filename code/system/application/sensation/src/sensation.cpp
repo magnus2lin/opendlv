@@ -67,7 +67,7 @@ Sensation::Sensation(int32_t const &a_argc, char **a_argv) :
     m_timeBefore( ),
     m_timeNow( ),
     lastDataTime(0), // initialized to zero
-    m_GPSreference(57.71278, opendlv::data::environment::WGS84Coordinate::NORTH,
+    m_gpsReference(57.71278, opendlv::data::environment::WGS84Coordinate::NORTH,
                    11.94581583, opendlv::data::environment::WGS84Coordinate::EAST), // initialize to some coordinate in Sweden
     GPSreferenceSET(false)
 
@@ -109,28 +109,6 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         using namespace opendlv::data::environment;
 
 
-
-        // First, you need to declare a lat/lon coordinate to be used
-        // as reference (i.e. origin (0, 0) of a Cartesian coordinate
-        // frame); in our example, we use one located at AstaZero.
-        //WGS84Coordinate reference(57.77284043, WGS84Coordinate::NORTH, 12.76996356, WGS84Coordinate::EAST);
-        //  WGS84Coordinate reference(57.71278, WGS84Coordinate::NORTH, 11.94581583, WGS84Coordinate::EAST);
-        // Let's assume you have another lat/lon coordinate at hand.
-        //WGS84Coordinate WGS84_p2(57.71278, WGS84Coordinate::NORTH, 11.94581583, WGS84Coordinate::EAST);
-
-        // Now, you can transform this new lat/lon coordinate to the
-        // previously specified Cartesian reference frame.
-        //Point3 cartesian_p2 = reference.transform(WGS84_p2);
-        //std::cout << "WGS84 reference: " << reference.toString()
-        //          << ", other WGS84 coordinate: " << WGS84_p2.toString()
-        //          << ", transformed cartesian coordinate: " << cartesian_p2.toString()
-        //          << std::endl;
-        // You can access the X, Y coordinates (Z==0) as follows:
-        //double p2_x = cartesian_p2.getX();
-        //double p2_y = cartesian_p2.getY();
-        //std::cout << "X = " << p2_x << ", Y = " << p2_y << std::endl;
-
-
     // To dump data structures into a CSV file, you create an output file first.
     // std::ofstream fout("../Exp_data/output.csv");
     std::ofstream fout_ekfState("../Exp_data/output_ekf.csv");
@@ -146,8 +124,8 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
     //odcore::reflection::CSVFromVisitableVisitor csvExporter1(fout, WITH_HEADER, DELIMITER);
 
 
-    double delta_t = 0;
-    double time_stamp = 0;
+    double deltaT = 0;
+    double timeStamp = 0;
 
     while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
@@ -176,9 +154,9 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         {
 
         //this will run only ones to set the origin of the reference frame
-            if ( !GPSreferenceSET )// the GPS reference is not set, set the GPSreference to the current position
+            if ( !GPSreferenceSET )// the GPS reference is not set, set the gps reference to the current position
             {
-            m_GPSreference = opendlv::data::environment::WGS84Coordinate( gpsData.getData<opendlv::proxy::GpsReading>().getLatitude(),  opendlv::data::environment::WGS84Coordinate::NORTH,
+            m_gpsReference = opendlv::data::environment::WGS84Coordinate( gpsData.getData<opendlv::proxy::GpsReading>().getLatitude(),  opendlv::data::environment::WGS84Coordinate::NORTH,
                                                                           gpsData.getData<opendlv::proxy::GpsReading>().getLongitude(), opendlv::data::environment::WGS84Coordinate::EAST);
             GPSreferenceSET = true;
             m_timeBefore = getPropulsionShaftVehicleSpeedData.getReceivedTimeStamp();
@@ -191,14 +169,11 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
         odcore::data::TimeStamp duration = m_timeNow - m_timeBefore;
         //cout << getName() << ": <<message>> : time step in microseconds = " << duration.toMicroseconds() << endl;
         m_timeBefore = m_timeNow;
-        delta_t = duration.toMicroseconds()/1000000.0;  //delta_t is in seconds
-
-        // let me out our signal for now to check if we are doing the right processing
-        // cout << getName() << ": " << commands.toString() << ", " << truckLocation.toString() << endl;
+        deltaT = duration.toMicroseconds()/1000000.0;  //deltaT is in seconds
 
         // converts coordinates
         WGS84Coordinate WGS84_ptruck(gpsCoordinate.getLatitude(), WGS84Coordinate::NORTH, gpsCoordinate.getLongitude(), WGS84Coordinate::EAST);
-        Point3 currentCartesianLocation = m_GPSreference.transform(WGS84_ptruck);
+        Point3 currentCartesianLocation = m_gpsReference.transform(WGS84_ptruck);
 
         // The csvExporter1 will "visit" the data structure "commands" and iterate
         // through its fields that will be stored in the output file fout.
@@ -225,7 +200,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
 
          // TODO handle IMU data
          Udyn.yaw_rate() = 0;//truckLocation.getYawRate();
-         Udyn.v_y() = 0;// (truckLocation.getLat_acc() - Udyn.v_y())/delta_t;
+         Udyn.v_y() = 0;// (truckLocation.getLat_acc() - Udyn.v_y())/deltaT;
 
 
          // System measurements
@@ -267,8 +242,8 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
              //std::cout << "Sensation::initializeEKF  << message >> Filter initialized " << std::endl;
 
              // update the timestamp - give the time in seconds
-             sys.updateDeltaT(delta_t);
-             sys_dyn.updateDeltaT(delta_t);
+             sys.updateDeltaT(deltaT);
+             sys_dyn.updateDeltaT(deltaT);
              std::cout << "Sensation::body  << message >> time updated " << sys.getDeltaT() << std::endl;
              std::cout << "Sensation::body  << message >> time updated " << sys_dyn.getDeltaT() << std::endl;
 
@@ -290,10 +265,10 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
             // store the current instant for the next iteration
             lastDataTime = gpsData.getReceivedTimeStamp().toMicroseconds();
 
-             time_stamp+=sys.getDeltaT();
+             timeStamp+=sys.getDeltaT();
            // Print to stdout
             std::cout   << getName() << " << message >> STATE \n"
-                        << "timestamp = " << time_stamp << "\n"
+                        << "timestamp = " << timeStamp << "\n"
                         << "           x " << X.x() << ", y " << X.y() << ", theta " << X.theta()  << "\n"
                         << "   dyn     x " << Xdyn.x() << ", y " << Xdyn.y() << ", theta " << Xdyn.theta()  << "\n"
                         << std::endl;
@@ -301,7 +276,7 @@ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Sensation::body() {
             //save data to file
             m_saveToFile = true;
             if (m_saveToFile){
-            fout_ekfState << time_stamp << " "
+            fout_ekfState << timeStamp << " "
                           << gpsCoordinate.getLatitude() << " " << gpsCoordinate.getLongitude() << " " << gpsCoordinate.getNorthHeading() <<  " "
                           << U.v() << " " << U.phi() << " "
                           << Z.Z_x() << " " << Z.Z_y() << " " << Z.Z_theta() << " " << Z.Z_theta_dot() << " " << hasData << " "

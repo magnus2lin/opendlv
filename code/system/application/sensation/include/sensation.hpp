@@ -175,7 +175,7 @@ class Sensation : public odcore::base::module::TimeTriggeredConferenceClientModu
 
 
 
-    opendlv::data::environment::WGS84Coordinate m_GPSreference;
+    opendlv::data::environment::WGS84Coordinate m_gpsReference;
     bool GPSreferenceSET;      ///--> false by default, set to true when the variable m_GPSreference is set to a new reference poit considered as origin of the axis
 
 };
