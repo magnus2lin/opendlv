@@ -29,9 +29,9 @@
 
 #include "act/act.hpp"
 
-namespace opendlv {
-namespace action {
-namespace act {
+ namespace opendlv {
+  namespace action {
+    namespace act {
 
 /**
   * Constructor.
@@ -39,20 +39,26 @@ namespace act {
   * @param a_argc Number of command line arguments.
   * @param a_argv Command line arguments.
   */
-Act::Act(int32_t const &a_argc, char **a_argv)
-    : TimeTriggeredConferenceClientModule(a_argc, a_argv, "action-act"),
-    m_acceleration(-2.0f),
-    m_steering(0.0f),
-    deltaTime(0.5f),
-    startTimeVector[],
-    amplitudeVector[],
-    counter(0)
-{
-}
+  Act::Act(int32_t const &a_argc, char **a_argv)
+  : TimeTriggeredConferenceClientModule(a_argc, a_argv, "action-act"),
+  m_acceleration(-2.0f),
+  m_steering(0.0f),
+  deltaTime(0.5f),
+  startTimeVectorAccelerate[],
+  startTimeVectorBrake[],
+  startTimeVectorSteering[];
+  amplitudeVectorAccelerate[],
+  amplitudeVectorBrake[],
+  amplitudeVectorSteering[],
+  counterAccelerate(0),
+  counterBrake(0),
+  counterSteering(0)
+  {
+  }
 
-Act::~Act()
-{
-}
+  Act::~Act()
+  {
+  }
 
 /**
  * Receives control correction requests, including a modality, if inhibitory,
@@ -60,66 +66,110 @@ Act::~Act()
  * Sends modulated contol signal as individual samples, per modality to Proxy
  * actuators.
  */
-odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Act::body()
-{
+ odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Act::body()
+ {
   while (getModuleStateAndWaitForRemainingTimeInTimeslice() ==
-      odcore::data::dmcp::ModuleStateMessage::RUNNING) {
+    odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
   //  std::cout << "Send acc. " << m_acceleration << " Steering: " << m_steering << std::endl;
-  
-    opendlv::proxy::Actuation actuation(m_acceleration, m_steering, false);
-    odcore::data::Container c(actuation);
-    getConference().send(c);
-  }
 
-  return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
+    opendlv::proxy::Actuation actuation(m_acceleration, m_steering, false);
+  odcore::data::Container c(actuation);
+  getConference().send(c);
+}
+
+return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
 }
 
 void Act::nextContainer(odcore::data::Container &c)
 {
   if(c.getDataType() == opendlv::action::Correction::ID()) {
     opendlv::action::Correction correction = 
-      c.getData<opendlv::action::Correction>();
+    c.getData<opendlv::action::Correction>();
 
     odcore::data::TimeStamp t0 = correction.getStartTime();
     std::string type = correction.getType();
     bool isInhibitory = correction.getIsInhibitory();
     float amplitude = correction.getAmplitude();
 
-    if (isInhibitory) {
-      startTimeVector.clear;
-      amplitudeVector.clear;
-      counter = 0;
+    if (type == "accelerate") {
+      inhibitoryCheck(isInhibitory, startTimeVectorAccelerate[], amplitudeVectorAccelerate[], counterAccelerate)
+      startTimeVectorAccelerate[counter] = t0;
+      amplitudeVectorAccelerate[counter] = amplitude;
+      counterAccelerate++;
+
+      if (odcore::data::TimeStamp timeStamp - startTimeVectorAccelerate[0] <= 0 ) {
+        for (int counter = 0; counter < counterAccelerate; counter++) {
+          startTimeVectorAccelerate[counter] = startTimeVectorAccelerate[counter+1]
+          amplitudeVectorAccelerate[counter] = amplitudeVectorAccelerate[counter+1]
+        }
+      }
     }
 
-    startTimeVector[counter] = t0;
-    amplitudeVector[counter] = amplitude;
-    
- 
-    if (type == "accelerate") {
+    else if (type == "brake") {
+      inhibitoryCheck(isInhibitory, startTimeVectorBrake[], amplitudeVectorBrake[], counterBrake)
+      startTimeVectorBrake[counter] = t0;
+      amplitudeVectorBrake[counter] = amplitude;
+      counterBrake++;
+    }
+
+    else if (type == "steering") {
+      inhibitoryCheck(isInhibitory, startTimeVectorSteering[], amplitudeVectorSteering[], counterSteering)
+      startTimeVectorSteering[counter] = t0;
+      amplitudeVectorSteering[counter] = amplitude;
+      counterAccelerate++;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    /*if (type == "accelerate") {
       //std::cout << "accelerate: " << amplitude << std::endl;
-      angleOut=amplitudeVector[counter]*deltaTime/25;
-      
-      
-
-
       m_acceleration = amplitude;
     } else if (type == "brake") {
       std::cout << "brake: " << amplitude << std::endl;
     } else if (type == "steering") {
       std::cout << "steering: " << amplitude << std::endl;
+    }*/
+
     }
-    counter++;
   }
-}
 
-void Act::setUp()
-{
-}
 
-void Act::tearDown()
-{
-}
+  void Act::timeCheck(float &timeVector, float &amplitudeVector, uint32_t counter)
+  {
+    if (odcore::data::TimeStamp timeStamp - timeVector[0] <= 0 ) {
+      for (uint32_t count = 0; count < counterAccelerate; count++) {
+        timeVector[count] = timeVector[count+1]
+        amplitudeVector[count] = amplitudeVector[count+1]
+      }
+    }
+  }
+
+  int Act::inhibitoryCheck(bool isInhibitory, float &timeVector[], float &amplitudeVector[], uint32_t counter )
+  {
+    if (isInhibitory) {
+      timeVector.clear;
+      amplitudeVector.clear;
+      counter = 0;
+    }
+    return counter;
+  }
+
+  void Act::setUp()
+  {
+  }
+
+  void Act::tearDown()
+  {
+  }
 
 } // act
 } // action

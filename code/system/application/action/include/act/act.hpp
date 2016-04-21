@@ -26,14 +26,14 @@
 #include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
 #include "opendavinci/odcore/data/Container.h"
 
-namespace opendlv {
-namespace action {
-namespace act {
+ namespace opendlv {
+  namespace action {
+    namespace act {
 
 /**
  * This class provides...
  */
-class Act : public odcore::base::module::TimeTriggeredConferenceClientModule {
+ class Act : public odcore::base::module::TimeTriggeredConferenceClientModule {
  public:
   Act(int32_t const &, char **);
   Act(Act const &) = delete;
@@ -41,7 +41,7 @@ class Act : public odcore::base::module::TimeTriggeredConferenceClientModule {
   virtual ~Act();
   virtual void nextContainer(odcore::data::Container &);
 
- private:
+private:
   odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
   void setUp();
   void tearDown();
@@ -49,10 +49,15 @@ class Act : public odcore::base::module::TimeTriggeredConferenceClientModule {
   float m_acceleration;
   float m_steering;
   float deltaTime;
-  float startTimeVector[];
-  float amplitudeVector[];
-  string typeVector[];
-  int counter;
+  float startTimeVectorAccelerate[],
+  float startTimeVectorBrake[],
+  float startTimeVectorSteering[];
+  float amplitudeVectorAccelerate[],
+  float amplitudeVectorBrake[],
+  float amplitudeVectorSteering[]
+  uint32_t counterAccelerate;
+  uint32_t counterBrake;
+  uint32_t counterSteering;
 };
 
 } // act
