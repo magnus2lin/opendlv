@@ -20,8 +20,11 @@
 FROM seresearch/odsimulation:latest
 MAINTAINER Christian Berger "christian.berger@gu.se"
 
+COPY od-package /od-package
+RUN dpkg -i /od-package/*.deb
+
 # Set locale (fix the locale warnings)
 RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 || :
 
-ADD opendlv /opt/opendlv
+COPY opendlv /opt/opendlv
 
