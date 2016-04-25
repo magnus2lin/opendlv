@@ -21,7 +21,8 @@ FROM seresearch/odsimulation:latest
 MAINTAINER Christian Berger "christian.berger@gu.se"
 
 COPY od-package /od-package
-RUN dpkg -i /od-package/*.deb
+RUN sh -c 'dpkg -i /od-package/opendavinci_3.0.4_x86_64-lib.deb'
+RUN sh -c 'dpkg -i /od-package/opendavinci_3.0.4_x86_64-odsupercomponent.deb'
 
 # Set locale (fix the locale warnings)
 RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 || :
