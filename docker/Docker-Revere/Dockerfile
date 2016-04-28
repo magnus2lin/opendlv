@@ -27,11 +27,11 @@ RUN apt-get upgrade -y
 RUN apt-get -y --no-install-recommends install nano build-essential rpm cmake git ant 
 RUN apt-get -y  install libcv-dev libhighgui-dev freeglut3 libqt4-dev libqwt5-qt4-dev libqwt5-qt4 libqt4-opengl-dev freeglut3-dev qt4-dev-tools libboost-dev libopencv-dev libopencv-photo-dev libopencv-contrib-dev openjdk-7-jdk default-jdk default-jre 
 
-RUN mkdir /source
+RUN mkdir /source/
 
 
-ADD packages /source
-ADD opendlv /source
+ADD packages /source/packages
+
 
 RUN dpkg -i /source/opendavinci_3.0.4_x86_64-lib.deb
 RUN dpkg -i /source/opendavinci_3.0.4_x86_64-odsupercomponent.deb
@@ -41,7 +41,8 @@ RUN dpkg -i /source/opendavinci_3.0.4_x86_64-odcantools.deb
 RUN dpkg -i /source/libautomotivedata_1.0.0_x86_64.deb
 RUN dpkg -i /source/opendlv_3.0.4_x86_64-lib.deb
 
-RUN cd /source && mkdir build && cd build && cmake .. && make
+RUN git clone https://github.com/magnus2lin/opendlv.git /source/
+RUN cd /source/opendlv && mkdir build && cd build && cmake .. && make
 
 # Set locale (fix the locale warnings)
 RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 || :
