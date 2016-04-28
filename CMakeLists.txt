@@ -86,6 +86,20 @@ if("${EIGEN3_INCLUDE_DIR}" STREQUAL "")
 endif()
 
 ###########################################################################
+# Find Kalman.
+if("${KALMAN_INCLUDE_DIR}" STREQUAL "")
+  message(STATUS "No KALMAN_INCLUDE_DIR was supplied, using the default (./thirdparty/kalman/include) directory.")
+  set(KALMAN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/kalman/include) 
+endif()
+
+###########################################################################
+# Find tiny_cnn.
+if("${TINYCNN_INCLUDE_DIR}" STREQUAL "")
+  message(STATUS "No TINYCNN_INCLUDE_DIR was supplied, using the default (./thirdparty/tiny-cnn) directory.")
+  set(TINYCNN_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/tiny-cnn) 
+endif()
+
+###########################################################################
 # Global project variables.
 set(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 message(STATUS "Installing OpenDLV to ${INSTALL_DIR}.")
@@ -155,6 +169,8 @@ ExternalProject_Add(system
                -DOPENDAVINCI_DIR=${OPENDAVINCI_DIR}
                -DCXXTEST_INCLUDE_DIR=${CXXTEST_INCLUDE_DIR}
                -DEIGEN3_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}
+               -DKALMAN_INCLUDE_DIR=${KALMAN_INCLUDE_DIR}
+               -DTINYCNN_INCLUDE_DIR=${TINYCNN_INCLUDE_DIR}
     TEST_BEFORE_INSTALL 1
     INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/system-prefix/src/system-build --target install COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/system-prefix/src/system-build --target ${MAKE_PACKAGE})
 
@@ -168,6 +184,7 @@ ExternalProject_Add(tools
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
                -DOPENDAVINCI_DIR=${OPENDAVINCI_DIR}
                -DCXXTEST_INCLUDE_DIR=${CXXTEST_INCLUDE_DIR}
+               -DEIGEN3_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}
     TEST_BEFORE_INSTALL 1
     INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/tools-prefix/src/tools-build --target install COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/tools-prefix/src/tools-build --target ${MAKE_PACKAGE})
 
