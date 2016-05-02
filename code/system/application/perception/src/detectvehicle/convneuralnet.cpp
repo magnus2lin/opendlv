@@ -181,11 +181,11 @@ void ConvNeuralNet::Update(const cv::Mat* a_imageFrame)
   }
 
 
-  cv::imshow("Final spatial map", spatialMap);
-  cv::imshow("Thresholded spatial map", thresholdedImg);
-  cv::imshow("CNN Output", workingImage);
+  //cv::imshow("Final spatial map", spatialMap);
+  //cv::imshow("Thresholded spatial map", thresholdedImg);
+  //cv::imshow("CNN Output", workingImage);
 
-  cv::waitKey(10);
+  //cv::waitKey(10);
 
 
   std::chrono::high_resolution_clock::time_point t3 = std::chrono::high_resolution_clock::now();

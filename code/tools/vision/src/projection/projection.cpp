@@ -168,7 +168,7 @@ void Projection::nextContainer(odcore::data::Container &a_c)
     putText(feed, "Position (x,y): (" + std::to_string(m_recPosX) + ","  + std::to_string(m_recPosY) + ")" , cvPoint(30,50), 
     1, 0.8, cvScalar(0,0,254), 1, CV_AA);
 
-    cv::imshow("Calibration", feed);
+    //cv::imshow("Calibration", feed);
 
     m_option = (char) cv::waitKey(1);
 

@@ -315,9 +315,9 @@ void DetectLane::nextContainer(odcore::data::Container &c)
   //-----------------------------
   // Show image
   //-----------------------------
-  imshow("1", src);
-  imshow("2", image);
-  waitKey(10);
+  //imshow("1", src);
+  //imshow("2", image);
+  //waitKey(10);
 	
   cvReleaseImage(&myIplImage);
   }
